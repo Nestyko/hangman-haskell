@@ -8,7 +8,7 @@ import System.Exit (exitSuccess)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stdout)
 import System.Random (randomRIO)
 
-type WordList = [String]
+newtype WordList = WordList [String] deriving (Eq, Show)
 
 data Difficulty
   = Easy
@@ -38,7 +38,7 @@ getMaxAttempts = attempts . getDifficulty
 allWords :: IO WordList
 allWords = do
   dict <- readFile "data/dict.txt"
-  return (lines dict)
+  return $ WordList (lines dict)
 
 minWordLength :: Int
 minWordLength = 4
@@ -49,7 +49,7 @@ maxWordLength = 9
 gameWords :: IO WordList
 gameWords = do
   aw <- allWords
-  return (filter gameLength aw)
+  return $ WordList (filter gameLength aw)
   where
     gameLength w =
       let l = length (w :: String)
@@ -58,11 +58,11 @@ gameWords = do
               < maxWordLength
 
 randomWord :: WordList -> IO String
-randomWord wl = do
+randomWord (WordList wl) = do
   randomIndex <- randomRIO (0, wordCount)
   return $ wl !! randomIndex
   where
-    wordCount = (length wl) - 1
+    wordCount = length wl - 1
 
 randomWord' :: IO String
 randomWord' = gameWords >>= randomWord
@@ -143,7 +143,7 @@ gameWin :: Puzzle -> IO ()
 gameWin (Puzzle word filledInSoFar _) =
   if all isJust filledInSoFar
     then do
-      putStrLn "You win!" ++ "\n The word was: " ++ word
+      putStrLn ("You win!" ++ "\n The word was: " ++ word)
       exitSuccess
     else return ()
 
